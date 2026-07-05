@@ -1,0 +1,3 @@
+I learned basic NumPy operations like creating arrays and performing simple calculations. It was easy and I faced no issues.
+I also learned Pandas for working with CSV files, exploring data and doing basic analysis. Pandas was a bit more difficult than NumPy but still manageable.
+I also found subject averages, top-performing students, and students below average from the dataset. I did face some challenges while working on the project but understood everything in the end.
