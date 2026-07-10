@@ -72,7 +72,6 @@ ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
 plt.savefig("Baseline confusion matrix.png")
 plt.show()
 
-#show confusion matrix
 ConfusionMatrixDisplay.from_predictions(y_test, y2_pred)
 plt.savefig("Tuned confusion matrix.png")
 plt.show()
