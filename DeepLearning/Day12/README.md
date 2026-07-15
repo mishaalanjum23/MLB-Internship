@@ -2,7 +2,7 @@
 
 ## What is Transfer Learning?
 
-Transfer Learning means using a model that has already been trained on a large dataset and adapting it to a new task. Instead of training a CNN from scratch, I used a pre-trained model and added my own classifier.
+Transfer Learning means using a model that has already been trained on a large dataset. Instead of training a CNN from scratch, I used a pre-trained model and added my own classifier.
 
 ## Why did I choose MobileNetV2?
 
@@ -19,7 +19,7 @@ This exceeded the target accuracy of 93%.
 ### Challenges
 
 * The Cats vs Dogs dataset was not loading correctly with TensorFlow Datasets, so I used a monkey patch to fix the issue and successfully load the dataset.
-* At first, I did not shuffle the dataset before splitting it. I learned that shuffling helps create a better training and validation split.
+* At first, I did not shuffle the dataset. I learned that shuffling helps create a better training and validation split.
 
 ### Lessons Learned
 
