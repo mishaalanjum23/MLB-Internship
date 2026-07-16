@@ -7,3 +7,10 @@ __pycache__/
 
 # VS Code settings
 .vscode/
+
+# YOLO model weights
+yolov8n.pt
+
+# YOLO prediction outputs
+runs/
+

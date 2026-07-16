@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 24
+names: ['Bitter melon', 'Brinjal', 'Cabbage', 'Calabash', 'Capsicum', 'Cauliflower', 'Garlic', 'Ginger', 'Green Chili', 'Lady finger', 'Onion', 'Potato', 'Sponge Gourd', 'Tomato', 'apple', 'banana', 'cucumber', 'dragon fruit', 'guava', 'orange', 'oren', 'pear', 'pineapple', 'sugar apple']
+
+roboflow:
+  workspace: orkhan-aliyev-8nktf
+  project: fruits-and-vegetables-2vf7u
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/orkhan-aliyev-8nktf/fruits-and-vegetables-2vf7u/dataset/1
