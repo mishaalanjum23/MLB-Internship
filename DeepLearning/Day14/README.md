@@ -1,3 +1,5 @@
+##  OpenCV
+
 ## BGR vs RGB
 
 RGB stands for **Red, Green, Blue** and is the color format used by most image libraries. OpenCV uses **BGR (Blue, Green, Red)** instead, so the order of the color channels is different.
