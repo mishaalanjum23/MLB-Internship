@@ -1,0 +1,93 @@
+import cv2
+
+# Load image
+path = input("Enter image name: ")
+image = cv2.imread(path)
+
+if image is None:
+    print("Image not found!")
+    exit()
+
+while True:
+    print("\nImage Processing Toolkit")
+    print("1. Convert to Grayscale")
+    print("2. Resize Image")
+    print("3. Rotate Image")
+    print("4. Flip Image")
+    print("5. Crop Image")
+    print("6. Draw Shapes")
+    print("7. Add Text")
+    print("8. Save Image")
+    print("9. Exit")
+
+    choice = input("Enter your choice: ")
+
+    if choice == "1":
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        print("Converted to grayscale.")
+
+    elif choice == "2":
+        width = int(input("Enter width: "))
+        height = int(input("Enter height: "))
+        image = cv2.resize(image, (width, height))
+        print("Image resized.")
+
+    elif choice == "3":
+        print("1. 90°")
+        print("2. 180°")
+        print("3. 270°")
+
+        rotate = input("Choose rotation: ")
+
+        if rotate == "1":
+            image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
+
+        elif rotate == "2":
+            image = cv2.rotate(image, cv2.ROTATE_180)
+
+        elif rotate == "3":
+            image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        print("Image rotated.")
+
+    elif choice == "4":
+        print("1. Horizontal")
+        print("2. Vertical")
+        flip = input("Choose flip: ")
+        if flip == "1":
+            image = cv2.flip(image, 1)
+
+        elif flip == "2":
+            image = cv2.flip(image, 0)
+
+        print("Image flipped.")
+
+    elif choice == "5":
+        y1 = int(input("Start row: "))
+        y2 = int(input("End row: "))
+        x1 = int(input("Start column: "))
+        x2 = int(input("End column: "))
+        image = image[y1:y2, x1:x2]
+        print("Image cropped.")
+
+    elif choice == "6":
+        cv2.rectangle(image, (20, 20), (200, 120), (0, 255, 0), 2)
+        cv2.circle(image, (300, 150), 50, (255, 0, 0), 2)
+        cv2.line(image, (0, 0), (400, 300), (0, 0, 255), 2)
+        print("Shapes drawn.")
+
+    elif choice == "7":
+        text = input("Enter text: ")
+        cv2.putText(image, text, (20, 50), cv2.FONT_HERSHEY_PLAIN, 5, (0, 0, 0), 2)
+        print("Text added.")
+
+    elif choice == "8":
+        name = input("Save image as: ")
+        cv2.imwrite(name, image)
+        print("Image saved.")
+
+    elif choice == "9":
+        print("Program ended.")
+        break
+
+    else:
+        print("Invalid choice.")
