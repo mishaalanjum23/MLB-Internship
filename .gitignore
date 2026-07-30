@@ -14,3 +14,6 @@ yolov8n.pt
 # YOLO prediction outputs
 runs/
 
+DeepLearning/Day18/project/output_videos/
+
+DeepLearning/Project1/parking_lot_ds/
