@@ -272,7 +272,7 @@ class AnnotationTool:
         self.canvas.create_text(text_x, text_y, anchor=tk.NW, text=class_name, fill=color, font=("Arial", 10, "bold"))
 
         if selected:
-            for handle_coords in self._get_corner_handles(coords):
+            for handle_coords in self._get_corner_handles(coords).values():
                 handle_canvas = self._image_to_canvas_coords(handle_coords)
                 self.canvas.create_rectangle(*handle_canvas, fill="white", outline="black")
 
@@ -291,6 +291,9 @@ class AnnotationTool:
         image_x, image_y = self._canvas_to_image_coords(event.x, event.y)
         if self.current_mode == "select":
             self._prepare_select_action(image_x, image_y)
+            self._render_image()
+            self._render_boxes()
+            self._update_status()
             return
 
         self.start_x = image_x
@@ -364,6 +367,7 @@ class AnnotationTool:
         """Determine whether the user wants to move or resize in select mode."""
         filename = self.image_files[self.current_index]
         boxes = self.boxes_by_image.get(filename, [])
+
         if self.selected_box_index is not None:
             selected_box = boxes[self.selected_box_index]
             handle = self._handle_at_point(selected_box["coords"], image_x, image_y)
@@ -383,9 +387,17 @@ class AnnotationTool:
         selected_index = self._find_box_at_point(boxes, image_x, image_y)
         self.selected_box_index = selected_index
         if selected_index is not None:
-            self.current_action = "move"
-            self.last_drag_x = image_x
-            self.last_drag_y = image_y
+            selected_box = boxes[selected_index]
+            handle = self._handle_at_point(selected_box["coords"], image_x, image_y)
+            if handle:
+                self.current_action = "resize"
+                self.resize_handle = handle
+                self.last_drag_x = image_x
+                self.last_drag_y = image_y
+            else:
+                self.current_action = "move"
+                self.last_drag_x = image_x
+                self.last_drag_y = image_y
         else:
             self.current_action = None
             self.resize_handle = None
@@ -411,10 +423,15 @@ class AnnotationTool:
                 return direction
         return None
 
-    def _get_corner_handles(self, coords):
-        """Return small corner handle boxes in image coordinates."""
+    def _point_in_box(self, coords, x, y):
+        """Return true if a point is inside the box but not on a handle."""
         left, top, right, bottom = coords
-        size = 8 / self.image_scale
+        return left <= x <= right and top <= y <= bottom
+
+    def _get_corner_handles(self, coords):
+        """Return corner handle boxes in image coordinates."""
+        left, top, right, bottom = coords
+        size = 5
         return {
             "nw": (left - size, top - size, left + size, top + size),
             "ne": (right - size, top - size, right + size, top + size),
