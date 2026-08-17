@@ -17,3 +17,18 @@ runs/
 DeepLearning/Day18/project/output_videos/
 
 DeepLearning/Project1/parking_lot_ds/
+
+# Task 19 stuff
+# Dataset
+dataset/
+
+# Test videos and generated results
+test_video/
+test_results/
+
+# Trained model
+best.pt
+
+# Python cache
+__pycache__/
+*.pyc

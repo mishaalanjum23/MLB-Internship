@@ -11,7 +11,7 @@ class AnnotationTool:
         self.root = root
         self.root.title("Annotation Tool")
 
-        self.image_folder = ""
+        self.image_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frames")
         self.image_files = []
         self.current_index = 0
         self.image_photo = None
@@ -33,6 +33,10 @@ class AnnotationTool:
         self.resize_handle = None
         self.last_drag_x = None
         self.last_drag_y = None
+        self.verified_images = set()
+        self.all_images_verified = False
+        self.undo_history = {}
+        self.undo_snapshot_pending = False
 
         self.class_options = ["Car", "Person", "Bike", "Truck", "Bus"]
         self.class_colors = {
@@ -48,6 +52,7 @@ class AnnotationTool:
         self.canvas_height = 700
 
         self._build_ui()
+        self._load_default_image_folder()
 
     def _build_ui(self):
         """Build the user interface widgets."""
@@ -85,6 +90,9 @@ class AnnotationTool:
         tk.Button(control_frame, text="Open Folder", command=self.open_folder).pack(side=tk.LEFT, padx=5)
         tk.Button(control_frame, text="Previous", command=self.previous_image).pack(side=tk.LEFT, padx=5)
         tk.Button(control_frame, text="Next", command=self.next_image).pack(side=tk.LEFT, padx=5)
+        tk.Button(control_frame, text="Undo", command=self.undo).pack(side=tk.LEFT, padx=5)
+        tk.Button(control_frame, text="Clear All Boxes", command=self.clear_all_annotations).pack(side=tk.LEFT, padx=5)
+        tk.Button(control_frame, text="Mark Verified", command=self.mark_verified).pack(side=tk.LEFT, padx=5)
         tk.Button(control_frame, text="Copy Previous Annotations", command=self.copy_previous_annotations).pack(side=tk.LEFT, padx=5)
         self.mode_button = tk.Button(control_frame, text="Mode: Draw", command=self.toggle_mode)
         self.mode_button.pack(side=tk.LEFT, padx=5)
@@ -98,28 +106,125 @@ class AnnotationTool:
         self.canvas.bind("<Button-1>", self.start_draw)
         self.canvas.bind("<B1-Motion>", self.draw_box)
         self.canvas.bind("<ButtonRelease-1>", self.finish_draw)
+        self.canvas.bind("<Configure>", self._on_canvas_resize)
 
         self.root.bind("<Key>", self._handle_keypress)
+        self.root.bind("<Control-z>", lambda event: self.undo())
         self.root.bind("<Right>", lambda event: self.next_image())
         self.root.bind("<Left>", lambda event: self.previous_image())
 
-    def open_folder(self):
-        """Open a folder and load image files."""
-        folder = filedialog.askdirectory()
-        if not folder:
+    def clear_all_annotations(self):
+      """Remove all annotations from the current image."""
+      if not self.image_files:
+         return
+
+      filename = self.image_files[self.current_index]
+      self.boxes_by_image[filename] = []
+      self.selected_box_index = None
+
+      self._render_image()
+      self._render_boxes()
+      self._update_status()
+
+    def _on_canvas_resize(self, event):
+        """Resize the displayed image when the canvas size changes."""
+        if not self.image_files:
+          return
+
+        self.canvas_width = event.width
+        self.canvas_height = event.height
+
+        filename = self.image_files[self.current_index]
+        image_path = os.path.join(self.image_folder, filename)
+
+        self._load_image(image_path)
+        self._render_image()
+        self._render_boxes()
+    
+    def _load_default_image_folder(self):
+        """Load the default Day19 frames folder on startup."""
+        default_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frames")
+        if not os.path.isdir(default_folder):
+            self.status_label.config(text="Default Day19 frames folder not found.")
+            self.canvas.delete("all")
             return
 
-        self.image_folder = folder
-        self.image_files = self._find_image_files(folder)
-        self.current_index = 0
+        self.image_folder = default_folder
+        self.image_files = self._find_image_files(default_folder)
         self.boxes_by_image = {}
         self._ensure_labels_folder()
+        self._ensure_verification_file()
+        self._load_verified_images()
 
         if not self.image_files:
             self.status_label.config(text="No images found in selected folder.")
             self.canvas.delete("all")
             return
 
+        self.current_index = self._find_start_index()
+        self.show_image()
+
+    def _ensure_verification_file(self):
+        """Create the verification file alongside frames and labels."""
+        verification_file = os.path.join(os.path.dirname(self.image_folder), "verified.txt")
+        if not os.path.exists(verification_file):
+            with open(verification_file, "w", encoding="utf-8"):
+                pass
+
+    def _load_verified_images(self):
+        """Load manually verified image filenames from verified.txt."""
+        verification_file = os.path.join(os.path.dirname(self.image_folder), "verified.txt")
+        self.verified_images = set()
+        if os.path.exists(verification_file):
+            with open(verification_file, "r", encoding="utf-8") as file:
+                for line in file:
+                    filename = line.strip()
+                    if filename:
+                        self.verified_images.add(filename)
+
+    def _save_verified_images(self):
+        """Persist verified images without duplicate lines."""
+        verification_file = os.path.join(os.path.dirname(self.image_folder), "verified.txt")
+        with open(verification_file, "w", encoding="utf-8") as file:
+            for filename in sorted(self.verified_images):
+                file.write(f"{filename}\n")
+
+    def _find_start_index(self):
+        """Find the resume target, using YOLO label availability first."""
+        self.all_images_verified = False
+        unlabeled_index = self._find_first_unlabeled_index()
+        if unlabeled_index is not None:
+            return unlabeled_index
+
+        first_unverified_index = self._find_first_unverified_index()
+        if first_unverified_index is not None:
+            return first_unverified_index
+
+        self.all_images_verified = True
+        return 0
+
+    def open_folder(self):
+        """Open a folder and load image files."""
+        default_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frames")
+        folder = filedialog.askdirectory(initialdir=default_folder)
+        if not folder:
+            return
+
+        self.image_folder = folder
+        self.image_files = self._find_image_files(folder)
+        self.boxes_by_image = {}
+        self.undo_history = {}
+        self.undo_snapshot_pending = False
+        self._ensure_labels_folder()
+        self._ensure_verification_file()
+        self._load_verified_images()
+
+        if not self.image_files:
+            self.status_label.config(text="No images found in selected folder.")
+            self.canvas.delete("all")
+            return
+
+        self.current_index = self._find_start_index()
         self.show_image()
 
     def _find_image_files(self, folder):
@@ -131,15 +236,45 @@ class AnnotationTool:
         )
 
     def _ensure_labels_folder(self):
-        """Create a labels folder inside the image folder."""
-        label_folder = os.path.join(self.image_folder, "labels")
+        """Create the sibling labels folder for the selected image folder."""
+        label_folder = os.path.join(os.path.dirname(self.image_folder), "labels")
         os.makedirs(label_folder, exist_ok=True)
 
     def _get_label_path(self, filename):
         """Return the label file path for a given image filename."""
-        label_folder = os.path.join(self.image_folder, "labels")
+        label_folder = os.path.join(os.path.dirname(self.image_folder), "labels")
         base_name, _ = os.path.splitext(filename)
         return os.path.join(label_folder, f"{base_name}.txt")
+
+    def _find_first_unlabeled_index(self):
+        """Return the first image missing a YOLO label file, if any."""
+        for index, filename in enumerate(self.image_files):
+            label_path = self._get_label_path(filename)
+            if not os.path.exists(label_path):
+                return index
+        return None
+
+    def _find_first_unverified_index(self):
+        """Return the first image not present in verified.txt."""
+        for index, filename in enumerate(self.image_files):
+            if filename not in self.verified_images:
+                return index
+        return None
+
+    def mark_verified(self):
+        """Mark the current image as manually verified in verified.txt."""
+        if not self.image_files:
+            return
+        
+        self._save_annotations()
+
+        filename = self.image_files[self.current_index]
+        if filename in self.verified_images:
+            return
+
+        self.verified_images.add(filename)
+        self._save_verified_images()
+        self._update_status()
 
     def _save_annotations(self):
         """Save current image annotations in YOLO format."""
@@ -277,11 +412,23 @@ class AnnotationTool:
                 self.canvas.create_rectangle(*handle_canvas, fill="white", outline="black")
 
     def _update_status(self):
-        """Update the filename, image count, annotation count, and mode."""
-        filename = self.image_files[self.current_index] if self.image_files else "No folder selected"
+        """Update filename, image progress, verification progress, annotations, and mode."""
+        if not self.image_files:
+            self.status_label.config(text="No folder selected")
+            return
+
+        filename = self.image_files[self.current_index]
         total = len(self.image_files)
-        annotations = len(self.boxes_by_image.get(self.image_files[self.current_index], [])) if self.image_files else 0
-        self.status_label.config(text=f"{filename}    ({self.current_index + 1}/{total})    Annotations: {annotations}    Mode: {self.current_mode.capitalize()}")
+        annotations = len(self.boxes_by_image.get(filename, []))
+        verified_count = len(self.verified_images)
+        current_text = f"Verified: {verified_count}/{total} | Current: {self.current_index + 1}/{total}"
+
+        if self.all_images_verified:
+            current_text = f"{current_text} | All images are verified"
+
+        self.status_label.config(
+            text=f"{current_text}    {filename}    ({self.current_index + 1}/{total})    Annotations: {annotations}    Mode: {self.current_mode.capitalize()}"
+        )
 
     def start_draw(self, event):
         """Handle a canvas click based on the current mode."""
@@ -331,6 +478,7 @@ class AnnotationTool:
             self.resize_handle = None
             self.last_drag_x = None
             self.last_drag_y = None
+            self.undo_snapshot_pending = False
             self._update_status()
             return
 
@@ -346,6 +494,7 @@ class AnnotationTool:
         """Save the drawn box and class label for the current image."""
         filename = self.image_files[self.current_index]
         class_name = self.current_class.get()
+        self._save_undo_snapshot()
         self.boxes_by_image.setdefault(filename, []).append({
             "coords": box,
             "class": class_name,
@@ -431,13 +580,51 @@ class AnnotationTool:
     def _get_corner_handles(self, coords):
         """Return corner handle boxes in image coordinates."""
         left, top, right, bottom = coords
-        size = 5
+        handle_size = 3 / max(self.image_scale, 0.01)      
         return {
-            "nw": (left - size, top - size, left + size, top + size),
-            "ne": (right - size, top - size, right + size, top + size),
-            "se": (right - size, bottom - size, right + size, bottom + size),
-            "sw": (left - size, bottom - size, left + size, bottom + size),
+          "nw": (left - handle_size, top - handle_size,
+                left + handle_size, top + handle_size),
+          "ne": (right - handle_size, top - handle_size,
+                right + handle_size, top + handle_size),
+          "se": (right - handle_size, bottom - handle_size,
+                right + handle_size, bottom + handle_size),
+          "sw": (left - handle_size, bottom - handle_size,
+                left + handle_size, bottom + handle_size),
         }
+
+    def _save_undo_snapshot(self):
+        """Save the current image annotation list before a mutating action."""
+        if not self.image_files:
+            return
+
+        filename = self.image_files[self.current_index]
+        boxes = self.boxes_by_image.get(filename, [])
+        snapshot = [
+            {"coords": tuple(box["coords"]), "class": box["class"]}
+            for box in boxes
+        ]
+        self.undo_history.setdefault(filename, []).append(snapshot)
+
+    def undo(self):
+        """Restore the previous annotation state for the current image."""
+        if not self.image_files:
+            return
+
+        filename = self.image_files[self.current_index]
+        history = self.undo_history.get(filename, [])
+        if not history:
+            return
+
+        previous_boxes = history.pop()
+        self.boxes_by_image[filename] = [
+            {"coords": tuple(entry["coords"]), "class": entry["class"]}
+            for entry in previous_boxes
+        ]
+        self.selected_box_index = None
+        self._save_annotations()
+        self._render_image()
+        self._render_boxes()
+        self._update_status()
 
     def delete_selected_box(self):
         """Delete the selected box from the current image."""
@@ -447,8 +634,10 @@ class AnnotationTool:
 
         boxes = self.boxes_by_image.get(filename, [])
         if 0 <= self.selected_box_index < len(boxes):
+            self._save_undo_snapshot()
             boxes.pop(self.selected_box_index)
             self.selected_box_index = None
+            self._save_annotations()
             self._render_image()
             self._render_boxes()
             self._update_status()
@@ -486,6 +675,10 @@ class AnnotationTool:
         """Move or resize the selected box while dragging."""
         if self.selected_box_index is None:
             return
+
+        if self.current_action in {"move", "resize"} and not self.undo_snapshot_pending:
+            self._save_undo_snapshot()
+            self.undo_snapshot_pending = True
 
         filename = self.image_files[self.current_index]
         boxes = self.boxes_by_image.get(filename, [])
@@ -542,20 +735,27 @@ class AnnotationTool:
 
     def _canvas_to_image_coords(self, canvas_x, canvas_y):
         """Convert canvas coordinates to image space and clamp inside the image."""
-        image_x = canvas_x - self.image_offset_x
-        image_y = canvas_y - self.image_offset_y
-        image_x = max(0, min(image_x, self.image_display_width))
-        image_y = max(0, min(image_y, self.image_display_height))
+        scale_x = self.image_display_width / self.image_orig_width
+        scale_y = self.image_display_height / self.image_orig_height
+
+        image_x = (canvas_x - self.image_offset_x) / scale_x
+        image_y = (canvas_y - self.image_offset_y) / scale_y
+
+        image_x = max(0, min(image_x, self.image_orig_width))
+        image_y = max(0, min(image_y, self.image_orig_height))
         return image_x, image_y
 
     def _image_to_canvas_coords(self, coords):
         """Convert image-space coordinates to canvas coordinates."""
         left, top, right, bottom = coords
+
+        scale_x = self.image_display_width / self.image_orig_width
+        scale_y = self.image_display_height / self.image_orig_height
         return (
-            left + self.image_offset_x,
-            top + self.image_offset_y,
-            right + self.image_offset_x,
-            bottom + self.image_offset_y,
+          left * scale_x + self.image_offset_x,
+          top * scale_y + self.image_offset_y,
+          right * scale_x + self.image_offset_x,
+          bottom * scale_y + self.image_offset_y,
         )
 
     def _normalize_box(self, x1, y1, x2, y2):
@@ -567,24 +767,37 @@ class AnnotationTool:
         return left, top, right, bottom
 
     def copy_previous_annotations(self):
-        """Copy annotations from the previous image if the current image is empty."""
+        """Copy annotations from the previous image to the current image."""
         if not self.image_files or self.current_index == 0:
-            return
+         return
 
         current_filename = self.image_files[self.current_index]
         previous_filename = self.image_files[self.current_index - 1]
-        current_boxes = self.boxes_by_image.get(current_filename, [])
+
+       # Make sure previous image annotations are loaded
+        self._load_annotations(previous_filename)
+
         previous_boxes = self.boxes_by_image.get(previous_filename, [])
 
-        if current_boxes or not previous_boxes:
-            return
+        if not previous_boxes:
+         return
+
+        # Only copy if current image has no annotations
+        current_boxes = self.boxes_by_image.get(current_filename, [])
+        if current_boxes:
+         return
 
         copied = [
-            {"coords": tuple(box["coords"]), "class": box["class"]}
-            for box in previous_boxes
-        ]
+        {
+            "coords": tuple(box["coords"]),
+            "class": box["class"]
+        }
+        for box in previous_boxes
+    ]
+
         self.boxes_by_image[current_filename] = copied
         self.selected_box_index = None
+
         self._render_image()
         self._render_boxes()
         self._update_status()
