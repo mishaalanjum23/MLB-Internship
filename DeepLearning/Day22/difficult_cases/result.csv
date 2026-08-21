@@ -1,0 +1,4 @@
+Image,Vehicle,Plate_Crop,Plate_Text,OCR_Confidence,Plate_Detection_Confidence
+img3.jpg,1,img3_vehicle_1_plate_1.jpg,Unreadable,0.00,0.74
+img5.jpg,1,img5_vehicle_1_plate_1.jpg,[02218407,0.28,0.66
+img7.jpg,2,img7_vehicle_2_plate_1.jpg,Unreadable,0.00,0.73
