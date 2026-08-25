@@ -1,0 +1,4 @@
+Query Image,Matching Image,pHash Distance,CNN Similarity,Result
+cycle.jpg,cycle_resized.jpg,2,0.9514,Near-Duplicate
+cycle.jpg,cycle_bright.jpg,10,0.8746,Near-Duplicate
+cycle.jpg,cycle_cropped.jpg,22,0.8541,Near-Duplicate

@@ -1,0 +1,6 @@
+Rank,Query Image,Similar Image,Similarity Score
+1,dog1.jpg,dog3.jpg,0.6736
+2,dog1.jpg,dog4.jpg,0.6492
+3,dog1.jpg,dog5.jpg,0.6256
+4,dog1.jpg,dog2.jpg,0.5715
+5,dog1.jpg,road3.jpg,0.3583
