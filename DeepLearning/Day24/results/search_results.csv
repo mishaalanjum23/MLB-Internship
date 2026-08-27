@@ -1,0 +1,21 @@
+query,rank,image,similarity,caption
+blue car,1,img2.jpg,0.2754,a blue volkswagen beetle parked in front of a wall
+blue car,2,img3.jpg,0.2733,a blue bmw car parked in front of a building
+blue car,3,img18.jpg,0.2245,a white sports car parked on the side of a road
+blue car,4,img19.jpg,0.2143,a black car driving down a highway
+blue car,5,img15.jpg,0.2104,a woman riding a bike down a street
+something to eat,1,img5.jpg,0.2217,a pizza with cheese and tomato sauce on a plate
+something to eat,2,img8.jpg,0.2162,a close up of a bunch of apples
+something to eat,3,img20.jpg,0.214,a woman preparing food in a kitchen
+something to eat,4,img7.jpg,0.2124,a rabbit sitting in the grass
+something to eat,5,img18.jpg,0.207,a white sports car parked on the side of a road
+a beautiful scene,1,img6.jpg,0.2351,a beach with a sunset and a sandy shore
+a beautiful scene,2,img16.jpg,0.2237,a view of a valley with mountains and trees
+a beautiful scene,3,img14.jpg,0.2232,a palm tree on a beach with a clear blue ocean
+a beautiful scene,4,img11.jpg,0.2155,a mountain range with snow capped peaks
+a beautiful scene,5,img18.jpg,0.209,a white sports car parked on the side of a road
+an outdoor activity,1,img17.jpg,0.2437,a man and woman running in the woods
+an outdoor activity,2,img13.jpg,0.2327,a dog sitting in the grass with its tongue out
+an outdoor activity,3,img15.jpg,0.2325,a woman riding a bike down a street
+an outdoor activity,4,img7.jpg,0.2222,a rabbit sitting in the grass
+an outdoor activity,5,img21.jpg,0.2177,a small brown dog sitting in the grass

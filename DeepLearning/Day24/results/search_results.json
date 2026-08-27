@@ -1,0 +1,130 @@
+{
+    "blue car": [
+        {
+            "rank": 1,
+            "image": "img2.jpg",
+            "similarity": 0.2754,
+            "caption": "a blue volkswagen beetle parked in front of a wall"
+        },
+        {
+            "rank": 2,
+            "image": "img3.jpg",
+            "similarity": 0.2733,
+            "caption": "a blue bmw car parked in front of a building"
+        },
+        {
+            "rank": 3,
+            "image": "img18.jpg",
+            "similarity": 0.2245,
+            "caption": "a white sports car parked on the side of a road"
+        },
+        {
+            "rank": 4,
+            "image": "img19.jpg",
+            "similarity": 0.2143,
+            "caption": "a black car driving down a highway"
+        },
+        {
+            "rank": 5,
+            "image": "img15.jpg",
+            "similarity": 0.2104,
+            "caption": "a woman riding a bike down a street"
+        }
+    ],
+    "something to eat": [
+        {
+            "rank": 1,
+            "image": "img5.jpg",
+            "similarity": 0.2217,
+            "caption": "a pizza with cheese and tomato sauce on a plate"
+        },
+        {
+            "rank": 2,
+            "image": "img8.jpg",
+            "similarity": 0.2162,
+            "caption": "a close up of a bunch of apples"
+        },
+        {
+            "rank": 3,
+            "image": "img20.jpg",
+            "similarity": 0.214,
+            "caption": "a woman preparing food in a kitchen"
+        },
+        {
+            "rank": 4,
+            "image": "img7.jpg",
+            "similarity": 0.2124,
+            "caption": "a rabbit sitting in the grass"
+        },
+        {
+            "rank": 5,
+            "image": "img18.jpg",
+            "similarity": 0.207,
+            "caption": "a white sports car parked on the side of a road"
+        }
+    ],
+    "a beautiful scene": [
+        {
+            "rank": 1,
+            "image": "img6.jpg",
+            "similarity": 0.2351,
+            "caption": "a beach with a sunset and a sandy shore"
+        },
+        {
+            "rank": 2,
+            "image": "img16.jpg",
+            "similarity": 0.2237,
+            "caption": "a view of a valley with mountains and trees"
+        },
+        {
+            "rank": 3,
+            "image": "img14.jpg",
+            "similarity": 0.2232,
+            "caption": "a palm tree on a beach with a clear blue ocean"
+        },
+        {
+            "rank": 4,
+            "image": "img11.jpg",
+            "similarity": 0.2155,
+            "caption": "a mountain range with snow capped peaks"
+        },
+        {
+            "rank": 5,
+            "image": "img18.jpg",
+            "similarity": 0.209,
+            "caption": "a white sports car parked on the side of a road"
+        }
+    ],
+    "an outdoor activity": [
+        {
+            "rank": 1,
+            "image": "img17.jpg",
+            "similarity": 0.2437,
+            "caption": "a man and woman running in the woods"
+        },
+        {
+            "rank": 2,
+            "image": "img13.jpg",
+            "similarity": 0.2327,
+            "caption": "a dog sitting in the grass with its tongue out"
+        },
+        {
+            "rank": 3,
+            "image": "img15.jpg",
+            "similarity": 0.2325,
+            "caption": "a woman riding a bike down a street"
+        },
+        {
+            "rank": 4,
+            "image": "img7.jpg",
+            "similarity": 0.2222,
+            "caption": "a rabbit sitting in the grass"
+        },
+        {
+            "rank": 5,
+            "image": "img21.jpg",
+            "similarity": 0.2177,
+            "caption": "a small brown dog sitting in the grass"
+        }
+    ]
+}
